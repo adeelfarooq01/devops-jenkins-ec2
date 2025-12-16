@@ -10,13 +10,13 @@ pipeline {
 
         stage('SSH Test') {
             steps {
-                bat '"C:\\Windows\\System32\\OpenSSH\\ssh.exe" -o ConnectTimeout=10 -i "D:\\Study Material\\SE-7\\DevOps\\sp22-bse-030_key.pem" sp22-030@20.198.20.235 whoami'
+                sh 'ssh -o ConnectTimeout=10 -i "/home/jenkins/keys/sp22-bse-030_key.pem" sp22-030@20.198.20.235 whoami'
             }
         }
 
         stage('Deploy HTML Page') {
             steps {
-                bat 'scp -i "D:\\Study Material\\SE-7\\DevOps\\sp22-bse-030_key.pem" index.html sp22-030@20.198.20.235:/home/sp22-030/devops-app/'
+                sh 'scp -i "/home/jenkins/keys/sp22-bse-030_key.pem" index.html sp22-030@20.198.20.235:/home/sp22-030/devops-app/'
             }
         }
     }
