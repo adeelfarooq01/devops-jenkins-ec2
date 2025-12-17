@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        // This is your SSH credential ID in Jenkins (Manage Jenkins -> Credentials)
-        // Make sure the ID in Jenkins is EXACTLY 'deploy-ssh-key'
+        // Ensure this matches your SSH Private Key ID in Jenkins
         SSH_CRED_ID = 'github-token' 
         REMOTE_USER = 'sp22-030'
         REMOTE_HOST = '20.198.20.235'
-        REMOTE_DIR  = '~/html'
+        // Pointing directly to the Nginx default root
+        LIVE_DIR    = '/var/www/html'
     }
 
     stages {
@@ -19,26 +19,27 @@ pipeline {
 
         stage('Validate HTML Files') {
             steps {
-                sh '''
-                echo "Checking HTML files..."
-                ls *.html
-                '''
+                sh 'ls -l index.html'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'echo "No build required for static HTML project"'
+                sh 'echo "Static site: No compilation needed."'
             }
         }
 
         stage('Deploy Application') {
             steps {
-                // We use the ID defined in the environment block
                 sshagent([SSH_CRED_ID]) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${REMOTE_DIR}"
-                    scp -r * ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/
+                    # 1. Clear old files from the live directory
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "rm -rf ${LIVE_DIR}/*"
+                    
+                    # 2. Copy the new index.html and files to the live directory
+                    scp -r * ${REMOTE_USER}@${REMOTE_HOST}:${LIVE_DIR}/
+                    
+                    echo "Deployment to http://${REMOTE_HOST} is complete!"
                     '''
                 }
             }
@@ -47,10 +48,10 @@ pipeline {
 
     post {
         success {
-            echo 'Deployment Successful!'
+            echo 'SUCCESS: Changes are now live on the server.'
         }
         failure {
-            echo 'Deployment Failed!'
+            echo 'FAILURE: Deployment failed. Check Jenkins credentials and VM permissions.'
         }
     }
 }
