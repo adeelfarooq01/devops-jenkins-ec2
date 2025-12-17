@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     environment {
-        SSH_KEY = '/home/jenkins/keys/sp22-bse-030_key.pem'
+        // This is your SSH credential ID in Jenkins (Manage Jenkins -> Credentials)
+        // Make sure the ID in Jenkins is EXACTLY 'deploy-ssh-key'
+        SSH_CRED_ID = 'github-token' 
         REMOTE_USER = 'sp22-030'
         REMOTE_HOST = '20.198.20.235'
-        REMOTE_DIR = '~/html'
+        REMOTE_DIR  = '~/html'
     }
 
     stages {
@@ -26,24 +28,22 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh '''
-                echo "No build required for static HTML project"
-                '''
+                sh 'echo "No build required for static HTML project"'
             }
         }
 
-        // REMOVED the extra "stages {" line that was here
         stage('Deploy Application') {
             steps {
-                sshagent(['github-token']) {
+                // We use the ID defined in the environment block
+                sshagent([SSH_CRED_ID]) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no sp22-030@20.198.20.235 "mkdir -p ~/html"
-                    scp -r * sp22-030@20.198.20.235:~/html/
+                    ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} "mkdir -p ${REMOTE_DIR}"
+                    scp -r * ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/
                     '''
                 }
             }
         }
-    } // End of the single stages block
+    }
 
     post {
         success {
