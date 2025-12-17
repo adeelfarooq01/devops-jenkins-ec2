@@ -2,16 +2,13 @@ pipeline {
     agent any
 
     environment {
-        // Path to your SSH private key on Jenkins server
         SSH_KEY = '/home/jenkins/keys/sp22-bse-030_key.pem'
-        // Remote server details
         REMOTE_USER = 'sp22-030'
         REMOTE_HOST = '20.198.20.235'
         REMOTE_DIR = '~/html'
     }
 
     stages {
-
         stage('Clone Repository') {
             steps {
                 checkout scm
@@ -35,7 +32,7 @@ pipeline {
             }
         }
 
-        stages {
+        // REMOVED the extra "stages {" line that was here
         stage('Deploy Application') {
             steps {
                 sshagent(['github-token']) {
@@ -46,8 +43,7 @@ pipeline {
                 }
             }
         }
-    }
-    
+    } // End of the single stages block
 
     post {
         success {
@@ -57,5 +53,4 @@ pipeline {
             echo 'Deployment Failed!'
         }
     }
-}
 }
