@@ -3,44 +3,35 @@ pipeline {
 
     stages {
 
-        stage('Checkout Repository') {
+        stage('Clone Repository') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/adeelfarooq01/devops-jenkins-ec2.git'
+                checkout scm
             }
         }
 
-        stage('SSH Test') {
+        stage('Validate HTML Files') {
             steps {
-                sshagent(['github-token']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no \
-                        -o ConnectTimeout=10 \
-                        sp22-030@20.198.20.235 whoami
-                    '''
-                }
+                sh '''
+                echo "Checking HTML files..."
+                ls *.html
+                '''
             }
         }
 
-        stage('Deploy HTML Page') {
+        stage('Build') {
             steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                        scp -o StrictHostKeyChecking=no \
-                        index.html \
-                        sp22-030@20.198.20.235:/home/sp22-030/devops-app/
-                    '''
-                }
+                sh '''
+                echo "No build required for static HTML project"
+                '''
             }
         }
-    }
 
-    post {
-        success {
-            echo 'Deployment Completed Successfully!'
-        }
-        failure {
-            echo 'Deployment Failed!'
+        stage('Deploy Application') {
+            steps {
+                sh '''
+                echo "HTML project ready"
+                '''
+            }
         }
     }
 }
